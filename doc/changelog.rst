@@ -26,6 +26,10 @@ Bug fixes
   startup. In the 4.0.0 macOS and Linux archives this happened with the USD decoder plugin, which can only be loaded
   from a Python process.
 - Fixed issues in single-shot :ref:`multicontact<coMultiCCD>` for cylinder edge collisions (:issue:`3748`, :issue:`3752`).
+- Fixed the moment of :ref:`site<actuator-general-site>` transmissions with a :ref:`refsite<actuator-general-refsite>`
+  whose body rotates through degrees of freedom that do not move the site, e.g. a refsite on another tree or branch.
+  The translational moment omitted the rotation of the reference frame, so ``actuator_velocity`` was not the time
+  derivative of ``actuator_length`` and the actuator applied a net torque to the system. Also fixed in MJX.
 
 Version 4.0.0 (November 6, 2026)
 --------------------------------
