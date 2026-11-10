@@ -261,7 +261,7 @@ void mjd_subQuat(const mjtNum qa[4], const mjtNum qb[4], mjtNum Da[9], mjtNum Db
 }
 
 
-// derivative of mju_quatIntegrate w.r.t scaled velocity
+// derivatives of mju_quatIntegrate w.r.t inputs
 //  reference: https://arxiv.org/abs/1711.02508, Eq. 183
 void mjd_quatIntegrate(const mjtNum vel[3], mjtNum scale,
                        mjtNum Dquat[9], mjtNum Dvel[9], mjtNum Dscale[3]) {
@@ -313,7 +313,7 @@ void mjd_quatIntegrate(const mjtNum vel[3], mjtNum scale,
     if (Dquat)          Dquat[i] = a*eye[i] + b*cross[i] + c*outer[i];
     if (Dvel || Dscale) Dvel_[i] = b*eye[i] + c*cross[i] + d*outer[i];
   }
-  if (Dvel) mju_copy9(Dvel, Dvel_);
+  if (Dvel) mju_scl(Dvel, Dvel_, scale, 9);
   if (Dscale) mji_mulMatVec3(Dscale, Dvel_, vel);
 }
 

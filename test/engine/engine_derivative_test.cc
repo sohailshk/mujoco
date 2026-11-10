@@ -1646,7 +1646,7 @@ void mjd_quatIntegrateFD(mjtNum Dquat[9], mjtNum Ds[9], mjtNum Dvel[9],
   // transpose
   mju_transpose(Dquat, DquatT, 3, 3);
   mju_transpose(Ds, DsT, 3, 3);
-  mju_transpose(Dvel, DsT, 3, 3);
+  mju_transpose(Dvel, DvelT, 3, 3);
 }
 
 TEST_F(DerivativeTest, quatIntegrate) {
@@ -1675,12 +1675,19 @@ TEST_F(DerivativeTest, quatIntegrate) {
       mjtNum DhFD[3];
       mjd_quatIntegrateFD(DquatFD, DsFD, DvelFD, DhFD, quat, vel, h, eps);
 
-      // expect numerical equality of un/scaled velocity derivatives
-      EXPECT_THAT(AsVector(DvelFD, 9), Pointwise(MjNear(1e-7, 1e-2), DsFD));
+      // FD error in the unscaled velocity derivative grows like h^2
+      mjtNum s = mju_max(1, h * h);
+
+      // expect the unscaled velocity derivative to be h times the scaled one
+      mjtNum hDsFD[9];
+      mju_scl(hDsFD, DsFD, h, 9);
+      EXPECT_THAT(AsVector(DvelFD, 9),
+                  Pointwise(MjNear(1e-7 * s, 1e-2 * s), hDsFD));
 
       // expect numerical equality of analytic and FD derivatives
       EXPECT_THAT(AsVector(DquatFD, 9), Pointwise(MjNear(1e-7, 1e-2), Dquat));
-      EXPECT_THAT(AsVector(DvelFD, 9), Pointwise(MjNear(1e-7, 1e-2), Dvel));
+      EXPECT_THAT(AsVector(DvelFD, 9),
+                  Pointwise(MjNear(1e-7 * s, 1e-2 * s), Dvel));
       EXPECT_THAT(AsVector(DhFD, 3), Pointwise(MjNear(1e-7, 1e-2), Dh));
     }
   }

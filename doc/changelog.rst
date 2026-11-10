@@ -26,6 +26,9 @@ Bug fixes
   startup. In the 4.0.0 macOS and Linux archives this happened with the USD decoder plugin, which can only be loaded
   from a Python process.
 - Fixed issues in single-shot :ref:`multicontact<coMultiCCD>` for cylinder edge collisions (:issue:`3748`, :issue:`3752`).
+- :ref:`mjd_quatIntegrate` now returns the derivative with respect to ``vel`` in ``Dvel``, as documented. Previously it
+  returned the derivative with respect to the scaled velocity ``scale * vel``, which is too large by a factor of
+  ``1 / scale``.
 
 Version 4.0.0 (November 6, 2026)
 --------------------------------
