@@ -398,6 +398,49 @@ class ActuatorTest(parameterized.TestCase):
     dx = jax.jit(mjx.euler)(mx, dx)
     _assert_attr_eq(d, dx, 'act')
 
+  def test_actearly(self):
+    m = mujoco.MjModel.from_xml_string("""
+        <mujoco>
+          <option timestep="0.01" gravity="0 0 0"/>
+          <worldbody>
+            <body>
+              <joint name="slide" type="slide" axis="1 0 0"/>
+              <geom size=".1" mass="1"/>
+            </body>
+          </worldbody>
+          <actuator>
+            <general joint="slide" dyntype="filter" dynprm=".05" gainprm="2"
+                     actearly="true"/>
+            <general joint="slide" dyntype="filterexact" dynprm=".05"
+                     gainprm="2" actearly="true"/>
+            <general joint="slide" dyntype="integrator" gainprm="1"
+                     actlimited="true" actrange="-.3 .3" actearly="true"/>
+            <general joint="slide" dyntype="filter" dynprm=".05" gainprm="2"/>
+          </actuator>
+        </mujoco>
+        """)
+    d = mujoco.MjData(m)
+    d.ctrl = np.array([1.0, -0.7, 2.0, 0.3])
+    d.act = np.array([0.1, -0.2, 0.29, 0.4])
+    mx = mjx.put_model(m)
+    dx = mjx.put_data(m, d)
+
+    mujoco.mj_fwdActuation(m, d)
+    dx = jax.jit(mjx.fwd_actuation)(mx, dx)
+
+    _assert_attr_eq(d, dx, 'act_dot')
+    _assert_attr_eq(d, dx, 'actuator_force')
+    _assert_attr_eq(d, dx, 'qfrc_actuator')
+
+    d = mujoco.MjData(m)
+    d.ctrl = np.array([1.0, -0.7, 2.0, 0.3])
+    d.act = np.array([0.1, -0.2, 0.29, 0.4])
+    dx = mjx.put_data(m, d)
+    mujoco.mj_step(m, d)
+    dx = jax.jit(mjx.step)(mx, dx)
+    _assert_attr_eq(d, dx, 'qvel')
+    _assert_attr_eq(d, dx, 'act')
+
   def test_tendon_force_clamp(self):
     m = test_util.load_test_file('actuator/tendon_force_clamp.xml')
     d = mujoco.MjData(m)

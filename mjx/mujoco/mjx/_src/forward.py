@@ -205,7 +205,12 @@ def fwd_actuation(m: Model, d: Data) -> Data:
 
   ctrl_act = ctrl
   if m.na:
-    act_last_dim = d.act[m.actuator_actadr + m.actuator_actnum - 1]
+    act_adr = m.actuator_actadr + m.actuator_actnum - 1
+    act_last_dim = d.act[act_adr]
+    if np.any(m.actuator_actearly):
+      # actearly: use the activation at the next step, as mj_fwdActuation does
+      act_next = _next_activation(m, d, act_dot)[act_adr]
+      act_last_dim = jp.where(m.actuator_actearly, act_next, act_last_dim)
     ctrl_act = jp.where(m.actuator_actadr == -1, ctrl, act_last_dim)
   ctrl_act = _wrap_setpoint(ctrl_act, d.actuator_length, _wrap_period(m))
 
