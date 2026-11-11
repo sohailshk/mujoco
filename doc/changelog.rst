@@ -2,6 +2,16 @@
 Changelog
 =========
 
+Upcoming version (not yet released)
+-----------------------------------
+
+MJX
+^^^
+
+1. ``mjx.put_model`` now raises ``NotImplementedError`` for models with polynomial spring-dampers (joint or
+   tendon :at:`stiffness` and :at:`damping` with non-zero higher-order coefficients) and for actuators with
+   :at:`damping` or :at:`armature`. The JAX backend does not implement them, and previously simulated such models without them.
+
 Version 4.0.1 (November 11, 2026)
 ---------------------------------
 

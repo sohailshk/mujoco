@@ -300,6 +300,67 @@ class ModelIOTest(parameterized.TestCase):
           impl='jax',
       )
 
+  @parameterized.parameters(
+      ('<joint name="j" stiffness="1 2 3"/>', '', 'Polynomial'),
+      ('<joint name="j" damping="0 1 1"/>', '', 'Polynomial'),
+      (
+          '<joint name="j"/>',
+          '<tendon><fixed stiffness="1 2"><joint joint="j" coef="1"/>'
+          '</fixed></tendon>',
+          'Polynomial',
+      ),
+      (
+          '<joint name="j"/>',
+          '<tendon><fixed damping="0 1"><joint joint="j" coef="1"/>'
+          '</fixed></tendon>',
+          'Polynomial',
+      ),
+      (
+          '<joint name="j"/>',
+          '<actuator><motor joint="j" damping="2"/></actuator>',
+          'Actuator damping',
+      ),
+      (
+          '<joint name="j"/>',
+          '<actuator><motor joint="j" damping="0 1"/></actuator>',
+          'Actuator damping',
+      ),
+      (
+          '<joint name="j"/>',
+          '<actuator><motor joint="j" armature="3"/></actuator>',
+          'Actuator damping',
+      ),
+  )
+  def test_poly_and_actuator_damping_not_implemented(self, joint, extra, msg):
+    # MJX does not compute these, so the model must be rejected instead of
+    # being simulated with different dynamics.
+    m = mujoco.MjModel.from_xml_string(f"""
+      <mujoco>
+        <worldbody>
+          <body>
+            {joint}
+            <geom size="0.1"/>
+          </body>
+        </worldbody>
+        {extra}
+      </mujoco>
+    """)
+    with self.assertRaisesRegex(NotImplementedError, msg):
+      mjx.put_model(m, impl='jax')
+
+  def test_linear_spring_damper_implemented(self):
+    m = mujoco.MjModel.from_xml_string("""
+      <mujoco>
+        <worldbody>
+          <body>
+            <joint stiffness="2" damping="3"/>
+            <geom size="0.1"/>
+          </body>
+        </worldbody>
+      </mujoco>
+    """)
+    mjx.put_model(m, impl='jax')
+
   def test_implicitfast_fluid_not_implemented(self):
     with self.assertRaises(NotImplementedError):
       mjx.put_model(

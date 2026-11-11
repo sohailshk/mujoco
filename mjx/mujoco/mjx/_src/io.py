@@ -378,6 +378,27 @@ def _put_model_jax(
           ' backend.'
       )
 
+  # polynomial spring-dampers and actuator damping/armature are not computed
+  poly_fields = (
+      'jnt_stiffnesspoly',
+      'tendon_stiffnesspoly',
+      'dof_dampingpoly',
+      'tendon_dampingpoly',
+  )
+  if any(getattr(m, f).any() for f in poly_fields):
+    raise NotImplementedError(
+        'Polynomial stiffness and damping not implemented for JAX backend.'
+    )
+  actuator_fields = (
+      'actuator_damping',
+      'actuator_dampingpoly',
+      'actuator_armature',
+  )
+  if any(getattr(m, f).any() for f in actuator_fields):
+    raise NotImplementedError(
+        'Actuator damping and armature not implemented for JAX backend.'
+    )
+
   mesh_geomid = set()
   for g1, g2, ip in collision_driver.geom_pairs(m):
     t1, t2 = m.geom_type[[g1, g2]]
