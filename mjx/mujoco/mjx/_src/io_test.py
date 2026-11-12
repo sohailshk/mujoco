@@ -311,6 +311,35 @@ class ModelIOTest(parameterized.TestCase):
           impl='jax',
       )
 
+  @parameterized.parameters(
+      ('Surface velocity', '<geom size="0.1" surfacevel="1 0 0 0 0 0"/>', ''),
+      ('Adhesion', '<geom size="0.1" adhesion="1"/>', ''),
+      (
+          'Adhesion',
+          '<geom name="g" size="0.1"/><geom name="h" size="0.1"/>',
+          '<contact><pair geom1="g" geom2="h" adhesion="1"/></contact>',
+      ),
+      (
+          'Delay',
+          '<geom size="0.1"/><joint name="j"/>',
+          '<actuator><motor joint="j" delay="0.01" nsample="2"/></actuator>',
+      ),
+      (
+          'Delay',
+          '<geom size="0.1"/><joint name="j"/>',
+          '<sensor><jointpos joint="j" delay="0.01" nsample="2"/></sensor>',
+      ),
+  )
+  def test_unsimulated_feature_not_implemented(self, message, body, extra):
+    xml = f"""
+      <mujoco>
+        <worldbody><body>{body}</body></worldbody>
+        {extra}
+      </mujoco>"""
+    m = mujoco.MjModel.from_xml_string(xml)
+    with self.assertRaisesRegex(NotImplementedError, message):
+      mjx.put_model(m, impl='jax')
+
   def test_wrap_inside(self):
     m = test_util.load_test_file('tendon/wrap_sidesite.xml')
     mx0 = mjx.put_model(m, impl='jax')

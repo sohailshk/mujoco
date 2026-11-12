@@ -399,6 +399,15 @@ def _put_model_jax(
       if int(t) == int(mujoco.mjtGeom.mjGEOM_MESH):
         mesh_geomid.add(g)
 
+  if m.flg_surfacevel:
+    raise NotImplementedError(
+        'Surface velocity not implemented for JAX backend.'
+    )
+  if m.geom_adhesion.any() or m.pair_adhesion.any():
+    raise NotImplementedError('Adhesion not implemented for JAX backend.')
+  if (m.actuator_delay > 0).any() or (m.sensor_delay > 0).any():
+    raise NotImplementedError('Delay not implemented for JAX backend.')
+
   for enum_field, enum_type, mj_type in (
       (m.actuator_biastype, types.BiasType, mujoco.mjtBias),
       (m.actuator_dyntype, types.DynType, mujoco.mjtDyn),
